@@ -82,10 +82,16 @@ if __name__ == '__main__':
         net = ddn2cidr(network, netmask)
         print '\n[*] scanning network', net, '...',
 
-        for host in getHostsInNetwork(network, netmask):
+        hosts = getHostsInNetwork(network, netmask)
+        print 'found', len(hosts), 'hosts',
+
+        i = 0
+        for host in hosts:
             resp = host[1]
             hostname = socket.gethostbyaddr(resp.psrc)[0]
             print "\n    HOST %s == %-16s (%s)" % (resp.src,
                                                    resp.psrc, hostname)
 
             doPortscan(resp.psrc)
+            i += 1
+            print 'done scanning', i, 'hosts!'
