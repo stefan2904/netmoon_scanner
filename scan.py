@@ -8,13 +8,16 @@ import nmap
 import math
 import os
 
+# PORTRANGE = '22-443'
+PORTRANGE = '1-10000'
+
 if os.geteuid() != 0:
     exit("You need to have root privileges to run the scanner ...")
 
 
 def doPortscan(target_ip):
     nm = nmap.PortScanner()
-    nm.scan(target_ip, '22-443')
+    nm.scan(target_ip, PORTRANGE)
     scan = nm[target_ip]
 
     for protocol in scan.all_protocols():
