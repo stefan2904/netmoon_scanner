@@ -57,7 +57,7 @@ def getActiveRoutes():
     return routes
 
 
-def getHostsInNet(net):
+def getHostsInNet(net, interface):
     try:
         ans, unans = scapy.layers.l2.arping(net, iface=interface,
                                             timeout=1, verbose=False)
@@ -66,14 +66,20 @@ def getHostsInNet(net):
     return ans
 
 
-def getHostsInNetwork(network, netmask):
+def getHostsInNetwork(network, netmask, interface):
     net = ddn2cidr(network, netmask)
-    return getHostsInNet(net)
+    return getHostsInNet(net, interface)
 
 
 @click.command()
 @click.option('--ports', default='22-443', help='Portrange to scan.')
 def main(ports):
+    """
+    Simple Network-Scanner.
+
+    Try do discover all hosts in the (local) network & scan their ports.
+    """
+
     routes = getActiveRoutes()
 
     print '[*] found  %d networks via %s:' % (len(routes),
@@ -87,7 +93,7 @@ def main(ports):
         net = ddn2cidr(network, netmask)
         print '\n[*] scanning network', net, '...',
 
-        hosts = getHostsInNetwork(network, netmask)
+        hosts = getHostsInNetwork(network, netmask, interface)
         print 'found', len(hosts), 'hosts',
 
         i = 0
