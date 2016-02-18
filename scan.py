@@ -6,18 +6,17 @@ import scapy.route
 import socket
 import nmap
 import math
+import click
 import os
 
-# PORTRANGE = '22-443'
-PORTRANGE = '1-10000'
 
 if os.geteuid() != 0:
     exit("You need to have root privileges to run the scanner ...")
 
 
-def doPortscan(target_ip):
+def doPortscan(target_ip, portsToScan):
     nm = nmap.PortScanner()
-    nm.scan(target_ip, PORTRANGE)
+    nm.scan(target_ip, portsToScan)
     scan = nm[target_ip]
 
     for protocol in scan.all_protocols():
@@ -71,7 +70,10 @@ def getHostsInNetwork(network, netmask):
     net = ddn2cidr(network, netmask)
     return getHostsInNet(net)
 
-if __name__ == '__main__':
+
+@click.command()
+@click.option('--ports', default='22-443', help='Portrange to scan.')
+def main(ports):
     routes = getActiveRoutes()
 
     print '[*] found  %d networks via %s:' % (len(routes),
@@ -95,6 +97,10 @@ if __name__ == '__main__':
             print "\n    HOST %s == %-16s (%s)" % (resp.src,
                                                    resp.psrc, hostname)
 
-            doPortscan(resp.psrc)
+            doPortscan(resp.psrc, ports)
             i += 1
         print 'done scanning', i, 'hosts!'
+
+
+if __name__ == '__main__':
+    main()
