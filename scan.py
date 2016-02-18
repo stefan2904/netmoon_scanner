@@ -94,4 +94,4 @@ if __name__ == '__main__':
 
             doPortscan(resp.psrc)
             i += 1
-            print 'done scanning', i, 'hosts!'
+        print 'done scanning', i, 'hosts!'
