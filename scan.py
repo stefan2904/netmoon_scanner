@@ -72,7 +72,10 @@ def getHostsInNetwork(network, netmask, interface):
 
 
 @click.command()
-@click.option('--ports', default='22-443', help='Portrange to scan. \n(Format: https://nmap.org/book/man-port-specification.html)')
+@click.option(
+    '--ports',
+    default='22-443',
+    help='Portrange to scan. \n(Format: https://nmap.org/book/man-port-specification.html)')
 def main(ports):
     """
     Simple Network-Scanner.
