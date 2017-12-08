@@ -45,13 +45,19 @@ def ddn2cidr(bytes_network, bytes_netmask):
     return "%s/%s" % (network, netmask)
 
 
-def getActiveRoutes():
+def getActiveRoutes(interface=scapy.config.conf.iface):
     '''
     returns routes of active network interface
     '''
+
+    routes = scapy.config.conf.route.routes
+    # routes = filter(
+    #    lambda x: x[3] == interface,
+    #    routes)
+
     routes = filter(
-        lambda x: x[3] == scapy.config.conf.iface,
-        scapy.config.conf.route.routes)
+        lambda x: x[3] != 'lo',
+        routes)
 
     # filter out loopback/localhost and broadcast
     routes = filter(lambda x: x[0] != 0 and x[1] !=
@@ -63,19 +69,19 @@ def getActiveRoutes():
     return routes
 
 
-def getHostsInNet(net, interface):
+def getHostsInNet(net, interface, arptimeout):
     ans = []
     try:
         ans, unans = scapy.layers.l2.arping(net, iface=interface,
-                                            timeout=10, verbose=False)
+                                            timeout=arptimeout, verbose=False)
     except:
         traceback.print_exc()
     return ans
 
 
-def getHostsInNetwork(network, netmask, interface):
+def getHostsInNetwork(network, netmask, interface, arptimeout):
     net = ddn2cidr(network, netmask)
-    return getHostsInNet(net, interface)
+    return getHostsInNet(net, interface, arptimeout)
 
 
 @click.command()
@@ -85,7 +91,7 @@ def getHostsInNetwork(network, netmask, interface):
     help='Portrange to scan. \n(Format: https://nmap.org/book/man-port-specification.html)')
 @click.option(
     '--arptimeout',
-    default='10',
+    default=10,
     help='ARPing timeout')
 def main(ports, arptimeout):
     """
@@ -102,19 +108,19 @@ def main(ports, arptimeout):
 
     routes = getActiveRoutes()
 
-    print '[*] found  %d networks via %s:' % (len(routes),
-                                              scapy.config.conf.iface)
+    print '[*] found  %d networks:' % (len(routes))
 
     for network, netmask, _, interface, address in routes:
         net = ddn2cidr(network, netmask)
-        print '[*]  ', net
+        print '[*]  ', net, 'via', interface
 
-    for network, netmask, _, _, _ in routes:
+    for network, netmask, _, interface, _ in routes:
+        print '\n[*] initializing interface', interface, '...'
         net = ddn2cidr(network, netmask)
-        print '\n[*] scanning network', net, '...',
+        print '\n[*] scanning network', net, 'via', interface, '...'
 
-        hosts = getHostsInNetwork(network, netmask, interface)
-        print 'found', len(hosts), 'hosts',
+        hosts = getHostsInNetwork(network, netmask, interface, arptimeout)
+        print '[*] found', len(hosts), 'hosts.',
 
         i = 0
         for host in hosts:
